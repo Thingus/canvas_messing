@@ -128,6 +128,11 @@ impl Universe {
         self.width = width;
         self.reset_cells()
     }
+
+    pub fn set_height(&mut self, height: u32) {
+        self.height = height;
+        self.reset_cells()
+    }
 }
 
 // Public methods _not_ exposed to JS, for testing
