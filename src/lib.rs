@@ -18,6 +18,7 @@ pub struct Universe {
     cells: Vec<Cell>,
 }
 
+// Private functions
 impl Universe {
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
@@ -39,6 +40,10 @@ impl Universe {
         }
         count
     }
+
+    fn reset_cells(&mut self) {
+        self.cells = (0..self.width * self.height).map(|_i| Cell::Dead).collect();
+    }
 }
 
 impl fmt::Display for Universe {
@@ -48,7 +53,7 @@ impl fmt::Display for Universe {
                 let symbol = if cell == Cell::Dead { '◻' } else { '◼' };
                 write!(f, "{}", symbol)?;
             }
-            write!(f, "\n")?;
+            writeln!(f, "\n")?;
         }
 
         Ok(())
@@ -117,5 +122,24 @@ impl Universe {
 
     pub fn cells(&self) -> *const Cell {
         self.cells.as_ptr()
+    }
+
+    pub fn set_width(&mut self, width: u32) {
+        self.width = width;
+        self.reset_cells()
+    }
+}
+
+// Public methods _not_ exposed to JS, for testing
+impl Universe {
+    pub fn get_cells(&self) -> &[Cell] {
+        &self.cells
+    }
+
+    pub fn set_cells(&mut self, cells: &[(u32, u32)]) {
+        for (row, col) in cells.iter().cloned() {
+            let idx = self.get_index(row, col);
+            self.cells[idx] = Cell::Alive;
+        }
     }
 }
