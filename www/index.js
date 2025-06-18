@@ -6,7 +6,7 @@ const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
 
-const universe = Universe.new();
+const universe = Universe.new_random();
 const width = universe.width();
 const height = universe.height();
 
@@ -15,6 +15,9 @@ canvas.height = (CELL_SIZE + 1) * height + 1;
 canvas.width = (CELL_SIZE + 1) * width + 1;
 
 const ctx = canvas.getContext("2d");
+
+let animationId = null;
+let ticks_per_frame = 1;
 
 const drawGrid = () => {
   ctx.beginPath();
@@ -64,14 +67,58 @@ const drawCells = () => {
 };
 
 const renderLoop = () => {
-  universe.tick();
-
+  debugger;
   drawGrid();
   drawCells();
+  for (let ii = 0; ii < ticks_per_frame; ii++) {
+    universe.tick();
+  }
 
-  requestAnimationFrame(renderLoop);
+  animationId = requestAnimationFrame(renderLoop);
 };
 
-drawGrid();
-drawCells();
-requestAnimationFrame(renderLoop);
+const isPaused = () => {
+  return animationId === null;
+};
+
+const playPauseButton = document.getElementById("play-pause");
+
+const play = () => {
+  playPauseButton.textContent = "⏸";
+  renderLoop();
+};
+
+const pause = () => {
+  playPauseButton.textContent = "▶";
+  cancelAnimationFrame(animationId);
+  animationId = null;
+};
+
+playPauseButton.addEventListener("click", () => {
+  if (isPaused()) {
+    play();
+  } else {
+    pause();
+  }
+});
+
+const ticksSlider = document.getElementById("ticks-per-frame");
+
+ticksSlider.addEventListener("input", () => {
+  ticks_per_frame = ticksSlider.value;
+});
+
+canvas.addEventListener("click", (event) => {
+  const boundingRect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / boundingRect.width;
+  const scaleY = canvas.height / boundingRect.height;
+  const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
+  const canvasTop = (event.clientY - boundingRect.top) * scaleY;
+  const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
+  const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
+  universe.toggle_cell(row, col);
+  drawGrid();
+  drawCells();
+});
+
+play();

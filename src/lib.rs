@@ -3,6 +3,14 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 
+extern crate web_sys;
+
+macro_rules! log {
+    ( $( $t:tt)* ) => {
+        web_sys::console::log_1(&format!( $( $t )*).into());
+    };
+}
+
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -11,11 +19,26 @@ pub enum Cell {
     Alive = 1,
 }
 
+impl Cell {
+    fn toggle(&mut self) {
+        *self = match *self {
+            Cell::Alive => Cell::Dead,
+            Cell::Dead => Cell::Alive,
+        };
+    }
+}
+
 #[wasm_bindgen]
 pub struct Universe {
     width: u32,
     height: u32,
     cells: Vec<Cell>,
+}
+
+impl Default for Universe {
+    fn default() -> Self {
+        Universe::new()
+    }
 }
 
 // Private functions
@@ -63,6 +86,70 @@ impl fmt::Display for Universe {
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Universe {
+    pub fn new() -> Universe {
+        utils::set_panic_hook();
+        let width = 64;
+        let height = 64;
+
+        let cells = (0..width * height).map(|_| Cell::Dead).collect();
+
+        log!("Universe initalised, height: {height} width: {width}");
+
+        Universe {
+            width,
+            height,
+            cells,
+        }
+    }
+
+    pub fn new_mod7() -> Universe {
+        utils::set_panic_hook();
+        let width = 64;
+        let height = 64;
+
+        let cells = (0..width * height)
+            .map(|i| {
+                if i % 2 == 0 || i % 7 == 0 {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
+            })
+            .collect();
+
+        log!("Universe initalised, height: {height} width: {width}");
+
+        Universe {
+            width,
+            height,
+            cells,
+        }
+    }
+
+    pub fn new_random() -> Universe {
+        utils::set_panic_hook();
+        let width = 64;
+        let height = 64;
+
+        let cells = (0..width * height)
+            .map(|_| {
+                if getrandom::u32().unwrap() > (u32::MAX / 2) {
+                    Cell::Alive
+                } else {
+                    Cell::Dead
+                }
+            })
+            .collect();
+
+        log!("Universe initalised, height: {height} width: {width}");
+
+        Universe {
+            width,
+            height,
+            cells,
+        }
+    }
+
     pub fn tick(&mut self) {
         let mut next = self.cells.clone();
 
@@ -84,28 +171,10 @@ impl Universe {
             }
         }
 
+        let cell_count = next.iter().filter(|&c| *c == Cell::Alive).count();
+        log!("Tick over; {cell_count} live cells");
+
         self.cells = next;
-    }
-
-    pub fn new() -> Universe {
-        let width = 64;
-        let height = 64;
-
-        let cells = (0..width * height)
-            .map(|i| {
-                if i % 2 == 0 || i % 7 == 0 {
-                    Cell::Alive
-                } else {
-                    Cell::Dead
-                }
-            })
-            .collect();
-
-        Universe {
-            width,
-            height,
-            cells,
-        }
     }
 
     pub fn render(&self) -> String {
@@ -132,6 +201,11 @@ impl Universe {
     pub fn set_height(&mut self, height: u32) {
         self.height = height;
         self.reset_cells()
+    }
+
+    pub fn toggle_cell(&mut self, row: u32, column: u32) {
+        let idx = self.get_index(row, column);
+        self.cells[idx].toggle();
     }
 }
 
