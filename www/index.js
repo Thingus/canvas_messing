@@ -6,7 +6,7 @@ const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
 
-const universe = Universe.new_random();
+let universe = Universe.new_random();
 const width = universe.width();
 const height = universe.height();
 
@@ -73,7 +73,6 @@ const renderLoop = () => {
   for (let ii = 0; ii < ticks_per_frame; ii++) {
     universe.tick();
   }
-
   animationId = requestAnimationFrame(renderLoop);
 };
 
@@ -82,6 +81,28 @@ const isPaused = () => {
 };
 
 const playPauseButton = document.getElementById("play-pause");
+const resetEmptyButton = document.getElementById("reset-empty");
+const resetRandomButton = document.getElementById("reset-random");
+const resetMod7Button = document.getElementById("reset-mod-7");
+
+resetRandomButton.addEventListener("click", () => {
+  universe = Universe.new_random();
+  drawGrid();
+  drawCells();
+  animationId = null;
+});
+resetEmptyButton.addEventListener("click", () => {
+  universe = Universe.new();
+  drawGrid();
+  drawCells();
+  animationId = null;
+});
+resetMod7Button.addEventListener("click", () => {
+  universe = Universe.new_mod7();
+  drawGrid();
+  drawCells();
+  animationId = null;
+});
 
 const play = () => {
   playPauseButton.textContent = "⏸";
@@ -121,4 +142,4 @@ canvas.addEventListener("click", (event) => {
   drawCells();
 });
 
-play();
+pause();
