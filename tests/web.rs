@@ -4,7 +4,9 @@
 
 extern crate canvas_exploration;
 extern crate wasm_bindgen_test;
-use canvas_exploration::Universe;
+use canvas_exploration::flowmap::LandCell;
+use canvas_exploration::flowmap::Landscape;
+use canvas_exploration::universe::Universe;
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -38,4 +40,19 @@ pub fn test_tick() {
     let expected_universe = expected_spaceship();
     input_universe.tick();
     assert_eq!(&input_universe.get_cells(), &expected_universe.get_cells());
+}
+
+#[cfg(test)]
+pub fn landscapes() -> Vec<LandCell> {
+    vec![
+        LandCell(200, 0, false),
+        LandCell(200, 0, false),
+        LandCell(200, 0, false),
+    ]
+}
+#[cfg(test)]
+pub fn test_is_lowest() {
+    let test = LandCell(100, 0, 0);
+    let neighbours = landscapes();
+    assert!(Landscape::is_lowest(test, neighbours))
 }

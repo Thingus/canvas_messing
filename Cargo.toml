@@ -37,3 +37,6 @@ opt-level = "s"
 
 # We want to explictly use the wasm_js RNG
 rustflags = ['--cfg','getrandom_backend="wasm_js"']
+
+[profile.dev]
+rustflags = ['--cfg','getrandom_backend="wasm_js"']
