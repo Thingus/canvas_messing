@@ -170,6 +170,39 @@ impl Landscape {
         }
     }
 
+    pub fn new_from_dem(dem: Vec<Level>, height: u32, width: u32) -> Landscape {
+        set_panic_hook();
+
+        if dem.len() as u32 != height * width {
+            panic!("dem does not cast into heigh*width")
+        }
+
+        let mut cells: Vec<LandCell> = vec![];
+        let mut land_level: Level;
+
+        for row in 0..height {
+            for column in 0..width {
+                if [0, height - 1].contains(&row) || [0, width - 1].contains(&column) {
+                    land_level = 255;
+                } else {
+                    let idx = ((row * width) + column) as usize;
+                    land_level = dem[idx];
+                }
+                cells.push(LandCell {
+                    land_level,
+                    water_level: 0,
+                    has_water_flowing: false,
+                })
+            }
+        }
+
+        Landscape {
+            height,
+            width,
+            cells,
+        }
+    }
+
     pub fn width(&self) -> u32 {
         self.width
     }

@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "dependencies": {
-    "canvas_exploration": "file:../pkg"
+    "canvas_exploration": "file:../pkg",
+    "geotiff": "^2.1.4-beta.0"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.0.0",
