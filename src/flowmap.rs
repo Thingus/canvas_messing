@@ -137,6 +137,24 @@ impl Landscape {
         log!("{water_cells} cells now wet");
     }
 
+    pub fn reset(&mut self) {
+        log!("Resetting water levels");
+
+        let mut next = self.cells.clone();
+        // Skips the boundaries
+        for row in 1..(self.height - 1) {
+            for column in 1..(self.width - 1) {
+                let idx = self.get_index(row, column);
+                let cell = self.cells[idx];
+                let mut next_cell = next[idx];
+                let neighbours = self.get_neigbours(row, column);
+                next_cell.water_level = 0;
+                next[idx] = next_cell;
+            }
+        }
+        self.cells = next;
+    }
+
     pub fn new_bowl() -> Landscape {
         set_panic_hook();
 

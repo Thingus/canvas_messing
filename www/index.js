@@ -11,9 +11,6 @@ const landscape_canvas = document.getElementById("landscape-canvas");
 const getLandIndex = (row, col) => {
   return row * landscape.width() * data_stride + col * data_stride;
 };
-const getWaterIndex = (row, col) => {
-  return row * landscape.width() * data_stride + col * data_stride + 1;
-};
 
 const loadDem = async (dem_path) => {
   const image = await fromUrl(dem_path);
@@ -48,25 +45,70 @@ const drawCells = (ctx, landscape) => {
     for (let col = 0; col < landscape.width(); col++) {
       const idx = getLandIndex(row, col);
       let land_cell = cells[idx];
-      ctx.fillStyle = `rgb(${land_cell * 2} 0 0)`;
+      ctx.fillStyle = `rgb(0 ${land_cell * 2} 0)`;
 
       let water_cell = cells[idx + 1];
 
       if (water_cell > 0) {
-        ctx.fillStyle = `rgb(0 0 255)`;
+        ctx.fillStyle = `rgb(0 0 ${2*(255-water_cell)})`;
       }
 
-      ctx.fillRect(
-        col * (CELL_SIZE + 1) + 1,
-        row * (CELL_SIZE + 1) + 1,
-        CELL_SIZE,
-        CELL_SIZE,
-      );
+      ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
   }
 
   ctx.stroke();
 };
+
+// At this point, I realise why MVC is a good idea
+const playPauseButton = document.getElementById("play-pause");
+const stepButton = document.getElementById("step");
+const restartButton = document.getElementById("restart");
+const play = () => {
+  playPauseButton.textContent = "⏸";
+  renderLoop();
+};
+
+const isPaused = () => {
+  return animationId === null;
+};
+
+const pause = () => {
+  playPauseButton.textContent = "▶";
+  cancelAnimationFrame(animationId);
+  animationId = null;
+};
+
+const step = () => {
+  if (isPaused()) {
+    landscape.tick();
+    drawCells(ctx, landscape);
+    animationId = null;
+  }
+};
+
+const restart = async () => {
+  landscape.reset();
+  pause();
+  drawCells(ctx, landscape);
+  animationId = null;
+};
+
+playPauseButton.addEventListener("click", () => {
+  if (isPaused()) {
+    play();
+  } else {
+    pause();
+  }
+});
+
+stepButton.addEventListener("click", () => {
+  step();
+});
+
+restartButton.addEventListener("click", () => {
+  restart();
+});
 
 const renderLoop = () => {
   landscape.tick();
@@ -82,4 +124,5 @@ const setupCanvas = (landscape) => {
 
 let landscape = await loadDem("./output_hh.tif");
 let ctx = setupCanvas(landscape);
-renderLoop();
+drawCells(ctx,landscape);
+pause();
