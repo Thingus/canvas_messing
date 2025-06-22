@@ -97,16 +97,17 @@ impl Landscape {
         out
     }
 
-    pub fn is_lowest(target: &LandCell, neighbours: Vec<&LandCell>) -> bool {
+    pub fn is_lowest(target: &LandCell, neighbours: &Vec<&LandCell>) -> bool {
         neighbours
             .iter()
             .all(|cell| cell.total_level() >= target.total_level())
     }
 
-    fn is_about_to_be_wet(target: &LandCell, neighbours: Vec<&LandCell>) -> bool {
-        neighbours
-            .iter()
-            .any(|cell| cell.has_water_flowing && cell.total_level() >= target.total_level())
+    fn is_about_to_be_wet(target: &LandCell, neighbours: &Vec<&LandCell>) -> bool {
+        neighbours.iter().any(|cell| {
+            (cell.has_water_flowing || cell.water_level > 0)
+                && cell.total_level() > target.total_level()
+        })
     }
 }
 
@@ -123,10 +124,15 @@ impl Landscape {
                 let cell = self.cells[idx];
                 let mut next_cell = next[idx];
                 let neighbours = self.get_neigbours(row, column);
-                //log!("Cell: {cell}");
-                if Self::is_lowest(&cell, neighbours) {
+                if Self::is_about_to_be_wet(&cell, &neighbours) {
+                    next_cell.has_water_flowing = true;
+                }
+                if Self::is_lowest(&cell, &neighbours)
+                    && Self::is_about_to_be_wet(&cell, &neighbours)
+                {
                     log!("Increasing water level at {row} {column}");
                     next_cell.water_level += 1;
+                    next_cell.has_water_flowing = false;
                 }
                 next[idx] = next_cell;
             }
@@ -139,7 +145,6 @@ impl Landscape {
 
     pub fn reset(&mut self) {
         log!("Resetting water levels");
-
         let mut next = self.cells.clone();
         // Skips the boundaries
         for row in 1..(self.height - 1) {
@@ -147,7 +152,6 @@ impl Landscape {
                 let idx = self.get_index(row, column);
                 let cell = self.cells[idx];
                 let mut next_cell = next[idx];
-                let neighbours = self.get_neigbours(row, column);
                 next_cell.water_level = 0;
                 next[idx] = next_cell;
             }
@@ -231,5 +235,18 @@ impl Landscape {
 
     pub fn cells(&self) -> *const LandCell {
         self.cells.as_ptr()
+    }
+
+    pub fn set_water(&mut self, row: u32, column: u32, water_level: Level) {
+        let idx = self.get_index(row, column);
+        let mut cell = self.cells[idx].clone();
+        cell.water_level = water_level;
+        self.cells[idx] = cell;
+    }
+    pub fn make_stream(&mut self, row: u32, column: u32) {
+        let idx = self.get_index(row, column);
+        let mut cell = self.cells[idx].clone();
+        cell.has_water_flowing = true;
+        self.cells[idx] = cell;
     }
 }

@@ -31,6 +31,11 @@ const binDem = (dem_data) => {
   return new Uint8Array(dem_round.map((a) => a - min));
 };
 
+const setWater = () => {
+  //landscape.make_stream(30, 67);
+  landscape.make_stream(39, 45);
+};
+
 const drawCells = (ctx, landscape) => {
   const cellsPtr = landscape.cells();
   const cells = new Uint8Array(
@@ -48,9 +53,12 @@ const drawCells = (ctx, landscape) => {
       ctx.fillStyle = `rgb(0 ${land_cell * 2} 0)`;
 
       let water_cell = cells[idx + 1];
+      let is_stream = cells[idx + 2];
 
       if (water_cell > 0) {
-        ctx.fillStyle = `rgb(0 0 ${2*(255-water_cell)})`;
+        ctx.fillStyle = `rgb(0 0 ${2 * (255 - water_cell)})`;
+      } else if (is_stream) {
+        ctx.fillStyle = `rgb(0 250 242)`;
       }
 
       ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
@@ -124,5 +132,6 @@ const setupCanvas = (landscape) => {
 
 let landscape = await loadDem("./output_hh.tif");
 let ctx = setupCanvas(landscape);
-drawCells(ctx,landscape);
+setWater();
+drawCells(ctx, landscape);
 pause();
