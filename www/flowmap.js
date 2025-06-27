@@ -1,4 +1,4 @@
-import init, { memory } from "../pkg/canvas_exploration.js";
+import { memory } from "../pkg/canvas_exploration_bg";
 import { Landscape, Landcell } from "../pkg/canvas_exploration.js";
 const GeoTIFF = require("geotiff");
 const { fromUrl, fromUrls, fromArrayBuffer, fromBlob } = GeoTIFF;
