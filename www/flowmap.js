@@ -1,16 +1,17 @@
-import { memory } from "canvas_exploration/canvas_exploration_bg.wasm";
-import { Landscape, Landcell } from "canvas_exploration";
-import GeoTIFF, { fromUrl, fromUrls, fromArrayBuffer, fromBlob } from "geotiff";
+import init, { memory } from "../pkg/canvas_exploration.js";
+import { Landscape, Landcell } from "../pkg/canvas_exploration.js";
+const GeoTIFF = require("geotiff");
+const { fromUrl, fromUrls, fromArrayBuffer, fromBlob } = GeoTIFF;
 
 const CELL_SIZE = 10; // px
 
 const data_stride = 3;
 let animationId = null;
-const landscape_canvas = document.getElementById("landscape-canvas");
 
-const getLandIndex = (row, col) => {
-  return row * landscape.width() * data_stride + col * data_stride;
-};
+const landscape_canvas = document.getElementById("landscape-canvas");
+const playPauseButton = document.getElementById("play-pause");
+const stepButton = document.getElementById("step");
+const restartButton = document.getElementById("restart");
 
 const loadDem = async (dem_path) => {
   const image = await fromUrl(dem_path);
@@ -31,7 +32,7 @@ const binDem = (dem_data) => {
   return new Uint8Array(dem_round.map((a) => a - min));
 };
 
-const setWater = () => {
+const setWater = (landscape) => {
   //landscape.make_stream(30, 67);
   landscape.make_stream(39, 45);
 };
@@ -69,9 +70,6 @@ const drawCells = (ctx, landscape) => {
 };
 
 // At this point, I realise why MVC is a good idea
-const playPauseButton = document.getElementById("play-pause");
-const stepButton = document.getElementById("step");
-const restartButton = document.getElementById("restart");
 const play = () => {
   playPauseButton.textContent = "⏸";
   renderLoop();
@@ -87,7 +85,7 @@ const pause = () => {
   animationId = null;
 };
 
-const step = () => {
+const step = (landscape) => {
   if (isPaused()) {
     landscape.tick();
     drawCells(ctx, landscape);
@@ -95,33 +93,11 @@ const step = () => {
   }
 };
 
-const restart = async () => {
+const restart = async (landscape) => {
   landscape.reset();
   pause();
   drawCells(ctx, landscape);
   animationId = null;
-};
-
-playPauseButton.addEventListener("click", () => {
-  if (isPaused()) {
-    play();
-  } else {
-    pause();
-  }
-});
-
-stepButton.addEventListener("click", () => {
-  step();
-});
-
-restartButton.addEventListener("click", () => {
-  restart();
-});
-
-const renderLoop = () => {
-  landscape.tick();
-  drawCells(ctx, landscape);
-  animationId = requestAnimationFrame(renderLoop);
 };
 
 const setupCanvas = (landscape) => {
@@ -130,8 +106,40 @@ const setupCanvas = (landscape) => {
   return landscape_canvas.getContext("2d");
 };
 
-let landscape = await loadDem("./output_hh.tif");
-let ctx = setupCanvas(landscape);
-setWater();
-drawCells(ctx, landscape);
-pause();
+async function run() {
+  debugger;
+  await init();
+  let landscape = await loadDem("./output_hh.tif");
+
+  const renderLoop = () => {
+    landscape.tick();
+    drawCells(ctx, landscape);
+    animationId = requestAnimationFrame(renderLoop);
+  };
+
+  const getLandIndex = (row, col) => {
+    return row * landscape.width() * data_stride + col * data_stride;
+  };
+
+  playPauseButton.addEventListener("click", () => {
+    if (isPaused()) {
+      play();
+    } else {
+      pause();
+    }
+  });
+
+  stepButton.addEventListener("click", () => {
+    step(landscape);
+  });
+
+  restartButton.addEventListener("click", () => {
+    restart(landscape);
+  });
+
+  let ctx = setupCanvas(landscape);
+  setWater(landscape);
+  drawCells(ctx, landscape);
+  pause();
+}
+run();
