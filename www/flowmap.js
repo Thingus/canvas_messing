@@ -1,10 +1,13 @@
-import { memory } from "../pkg/canvas_exploration_bg";
-import { Landscape, Landcell } from "../pkg/canvas_exploration.js";
-const GeoTIFF = require("geotiff");
-const { fromUrl, fromUrls, fromArrayBuffer, fromBlob } = GeoTIFF;
+import init, { Landscape } from "./canvas_exploration.js";
+const { fromUrl, fromUrls, fromArrayBuffer, fromBlob } = window.GeoTIFF;
+// import GeoTIFF {
+//   fromUrl,
+//   fromUrls,
+//   fromArrayBuffer,
+//   fromBlob,
+// } from "https://cdn.jsdelivr.net/npm/geotiff";
 
-const CELL_SIZE = 10; // px
-
+const CELL_SIZE = 10;
 const data_stride = 3;
 let animationId = null;
 
@@ -14,6 +17,7 @@ const stepButton = document.getElementById("step");
 const restartButton = document.getElementById("restart");
 
 const loadDem = async (dem_path) => {
+  debugger;
   const image = await fromUrl(dem_path);
   const left = 50;
   const top = 10;
@@ -107,7 +111,6 @@ const setupCanvas = (landscape) => {
 };
 
 async function run() {
-  debugger;
   await init();
   let landscape = await loadDem("./output_hh.tif");
 

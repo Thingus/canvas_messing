@@ -7,14 +7,15 @@ authors = ["Thingus <john@johnrprogramming.com>"]
 edition = "2018"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]
 
 [features]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-wasm-bindgen = "0.2.84"
-getrandom = { version = "0.3", features = ["wasm_js"]} 
+wasm-bindgen = { version = "*"}
+getrandom = { version = "*", features = ["wasm_js"]} 
+js-sys = { version = "*"}
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -25,12 +26,13 @@ console_error_panic_hook = { version = "0.1.7", optional = true }
 [dependencies.web-sys]
 version = "0.3.4"
 features = [
-  "console",
+  'console',
   'Document',
   'Element',
   'HtmlElement',
-  'Node',
-  'Window',
+  'HtmlCanvasElement',
+  'CanvasRenderingContext2d',
+  'ImageData'
 ]
 
 [dev-dependencies]

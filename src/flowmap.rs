@@ -21,6 +21,8 @@
 
 use std::fmt;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::Clamped;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
 pub fn set_panic_hook() {
     #[cfg(feature = "console_error_panic_hook")]
@@ -38,8 +40,6 @@ macro_rules! log {
 
 type Level = u8;
 
-#[wasm_bindgen]
-#[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct LandCell {
     pub land_level: Level,
@@ -64,8 +64,6 @@ impl fmt::Display for LandCell {
     }
 }
 
-#[repr(C)]
-#[wasm_bindgen]
 pub struct Landscape {
     width: u32,
     height: u32,
@@ -109,10 +107,7 @@ impl Landscape {
                 && cell.total_level() > target.total_level()
         })
     }
-}
 
-#[wasm_bindgen]
-impl Landscape {
     pub fn tick(&mut self) {
         log!("Tick...");
         let mut next = self.cells.clone();
@@ -248,5 +243,75 @@ impl Landscape {
         let mut cell = self.cells[idx].clone();
         cell.has_water_flowing = true;
         self.cells[idx] = cell;
+    }
+}
+
+pub struct LandscapeCanvas {
+    landscape: Landscape,
+    width: u32,
+    height: u32,
+    cell_size: u32,
+}
+
+#[wasm_bindgen]
+impl LandscapeCanvas {
+    pub fn init(
+        canvas: HtmlCanvasElement,
+        canvas_width: u32,
+        canvas_height: u32,
+        cell_size: u32,
+        dem: Vec<Level>,
+    ) -> LandscapeCanvas {
+        if cell_size % canvas_width != 0 && cell_size % canvas_height != 0 {
+            panic!("Cells must divide cleanly into canvas size")
+        }
+        let landscape =
+            Landscape::new_from_dem(dem, cell_size / canvas_height, cell_size / canvas_width);
+
+        // let context = canvas
+        //     .get_context("2d")
+        //     .unwrap()
+        //     .unwrap()
+        //     .dyn_into::<web_sys::CanvasRenderingContext2d>()
+        //     .unwrap();
+
+        let canvas = LandscapeCanvas {
+            landscape: landscape,
+            width: canvas_width,
+            height: canvas_height,
+            cell_size: cell_size,
+        };
+        return canvas;
+    }
+
+    pub fn tick(&mut self) {
+        self.landscape.tick();
+    }
+
+    pub fn draw(&self, context: &CanvasRenderingContext2d) -> Result<(), JsValue> {
+        let mut image: Vec<u8> = vec![];
+
+        for x in 0..self.landscape.width {
+            for y in 0..self.landscape.height {
+                let idx = self.landscape.get_index(x, y);
+                let cell = self.landscape.cells[idx];
+                for value in LandscapeCanvas::pick_cell_color(cell) {
+                    image.push(value)
+                }
+            }
+        }
+        let data =
+            ImageData::new_with_u8_clamped_array_and_sh(Clamped(&image), self.width, self.height)?;
+        context.put_image_data(&data, 0.0, 0.0)
+    }
+
+    fn pick_cell_color(cell: LandCell) -> Vec<u8> {
+        if cell.has_water_flowing {
+            return vec![00, 250, 242];
+        } else if cell.is_wet() {
+            return vec![00, 00, 255 - cell.water_level];
+        } else {
+            return vec![0, cell.land_level, 0];
+        }
     }
 }
