@@ -256,7 +256,7 @@ pub struct LandscapeCanvas {
 #[wasm_bindgen]
 impl LandscapeCanvas {
     #[wasm_bindgen(constructor)]
-    pub fn init(
+    pub fn run(
         canvas_width_cells: u32,
         canvas_height_cells: u32,
         cell_size_pixels: u32,

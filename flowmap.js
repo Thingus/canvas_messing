@@ -1,4 +1,4 @@
-import { LandscapeCanvas } from "./pkg";
+import { LandscapeCanvas as LandscapeArtist } from "./pkg";
 import fromUrl from "geotiff";
 // import GeoTIFF {
 //   fromUrl,
@@ -25,7 +25,7 @@ const loadDem = async (dem_path) => {
   const width = right - left;
   const data = await image.readRasters({ window: [left, top, right, bottom] });
   const binned_data = binDem(data[0]);
-  return new LandscapeCanvas(width, height, CELL_SIZE, binned_data);
+  return new LandscapeArtist(width, height, CELL_SIZE, binned_data);
 };
 
 const binDem = (dem_data) => {
