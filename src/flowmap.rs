@@ -255,6 +255,7 @@ pub struct LandscapeCanvas {
 
 #[wasm_bindgen]
 impl LandscapeCanvas {
+    #[wasm_bindgen(constructor)]
     pub fn init(
         canvas_width_cells: u32,
         canvas_height_cells: u32,
@@ -289,6 +290,15 @@ impl LandscapeCanvas {
 
     pub fn tick(&mut self) {
         self.landscape.tick();
+    }
+    pub fn reset(&mut self) {
+        self.landscape.reset();
+    }
+    pub fn set_water(&mut self, row: u32, column: u32, water_level: u8) {
+        self.landscape.set_water(row, column, water_level);
+    }
+    pub fn make_stream(&mut self, row: u32, column: u32) {
+        self.landscape.make_stream(row, column);
     }
 
     pub fn draw(&self, context: &CanvasRenderingContext2d) {
