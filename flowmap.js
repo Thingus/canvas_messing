@@ -1,5 +1,6 @@
 import { LandscapeCanvas as LandscapeArtist } from "./pkg";
-import fromUrl from "geotiff";
+import PeakDEM from "./output_hh.tif";
+import { fromUrl } from "geotiff";
 // import GeoTIFF {
 //   fromUrl,
 //   fromUrls,
@@ -25,7 +26,8 @@ const loadDem = async (dem_path) => {
   const width = right - left;
   const data = await image.readRasters({ window: [left, top, right, bottom] });
   const binned_data = binDem(data[0]);
-  return new LandscapeArtist(width, height, CELL_SIZE, binned_data);
+  const la = new LandscapeArtist(width, height, CELL_SIZE, binned_data);
+  return la;
 };
 
 const binDem = (dem_data) => {
@@ -77,7 +79,7 @@ const setupLocalCanvas = (landscape) => {
 };
 
 async function run() {
-  let landscape = await loadDem("./output_hh.tif");
+  let landscape = await loadDem(PeakDEM);
 
   const renderLoop = () => {
     landscape.tick();
