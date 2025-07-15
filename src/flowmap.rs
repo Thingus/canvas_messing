@@ -187,9 +187,7 @@ impl Landscape {
     }
 
     pub fn new_from_dem(dem: Vec<Level>, height: u32, width: u32) -> Landscape {
-        set_panic_hook();
-
-        if dem.len() as u32 != height * width {
+        if dem.len() as u32 != (height * width) {
             panic!("dem does not cast into heigh*width")
         }
 
@@ -262,23 +260,26 @@ impl LandscapeCanvas {
         cell_size_pixels: u32,
         dem: Vec<Level>,
     ) -> LandscapeCanvas {
-        if cell_size_pixels % canvas_width_cells != 0 && cell_size_pixels % canvas_height_cells != 0
+        set_panic_hook();
+
+        let dem_len = dem.len();
+
+        log!("Beginning construction of canvas");
+        log!("Width: {canvas_width_cells} cells");
+        log!("Height: {canvas_height_cells} cells");
+        log!("Cell size: {cell_size_pixels} pixels");
+        log!("Dem: {dem_len} cells");
+
+        if (canvas_width_cells % cell_size_pixels != 0)
+            || (canvas_height_cells % cell_size_pixels != 0)
         {
-            panic!("Cells must divide cleanly into canvas size")
+            panic!("Cells must divide cleanly into canvas size");
         }
-        let landscape = Landscape::new_from_dem(
-            dem,
-            cell_size_pixels / canvas_height_cells,
-            cell_size_pixels / canvas_width_cells,
-        );
 
-        // let context = canvas
-        //     .get_context("2d")
-        //     .unwrap()
-        //     .unwrap()
-        //     .dyn_into::<web_sys::CanvasRenderingContext2d>()
-        //     .unwrap();
+        log!("Creating landscape from dem");
+        let landscape = Landscape::new_from_dem(dem, canvas_height_cells, canvas_width_cells);
 
+        log!("Creating canvas handler");
         let canvas = LandscapeCanvas {
             landscape: landscape,
             width: canvas_width_cells,

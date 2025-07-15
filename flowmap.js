@@ -1,12 +1,6 @@
 import { LandscapeCanvas as LandscapeArtist } from "./pkg";
 import PeakDEM from "./output_hh.tif";
 import { fromUrl } from "geotiff";
-// import GeoTIFF {
-//   fromUrl,
-//   fromUrls,
-//   fromArrayBuffer,
-//   fromBlob,
-// } from "https://cdn.jsdelivr.net/npm/geotiff";
 
 const CELL_SIZE = 10;
 let animationId = null;
@@ -26,8 +20,7 @@ const loadDem = async (dem_path) => {
   const width = right - left;
   const data = await image.readRasters({ window: [left, top, right, bottom] });
   const binned_data = binDem(data[0]);
-  const la = new LandscapeArtist(width, height, CELL_SIZE, binned_data);
-  return la;
+  return new LandscapeArtist(width, height, CELL_SIZE, binned_data);
 };
 
 const binDem = (dem_data) => {
@@ -79,6 +72,12 @@ const setupLocalCanvas = (landscape) => {
 };
 
 async function run() {
+
+  const landscape_canvas = document.getElementById("landscape-canvas");
+  const playPauseButton = document.getElementById("play-pause");
+  const stepButton = document.getElementById("step");
+  const restartButton = document.getElementById("restart");
+  
   let landscape = await loadDem(PeakDEM);
 
   const renderLoop = () => {
@@ -86,6 +85,7 @@ async function run() {
     landscape.draw(ctx);
     animationId = requestAnimationFrame(renderLoop);
   };
+
 
   playPauseButton.addEventListener("click", () => {
     if (isPaused()) {
