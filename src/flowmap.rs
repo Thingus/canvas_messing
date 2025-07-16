@@ -329,11 +329,15 @@ impl LandscapeCanvas {
     }
 
     fn pick_cell_color(cell: LandCell) -> String {
-        if cell.has_water_flowing {
-            return format!("rgb(00 250 242)");
-        } else if cell.is_wet() {
-            let blue_shade = 255 - cell.water_level;
+        // This could be done with a match, once I understand matches.
+        if cell.is_wet() {
+            let mut blue_shade = 230 - cell.water_level;
+            if cell.has_water_flowing {
+                blue_shade += 20;
+            }
             return format!("rgb(00 00 {blue_shade})");
+        } else if cell.has_water_flowing {
+            return format!("rgb(00 00 240)");
         } else {
             return format!("rgb(00 {0} 00)", cell.land_level);
         }
