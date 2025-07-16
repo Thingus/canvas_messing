@@ -19,6 +19,7 @@
 //   ... its standing water value increases by 1 (for now)
 //
 
+use rand::{prelude::*, rng};
 use std::fmt;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
@@ -109,6 +110,7 @@ impl Landscape {
 
     pub fn tick(&mut self) {
         log!("Tick...");
+        let mut rng = rand::rng();
         let mut next = self.cells.clone();
 
         // Skips the boundaries
@@ -124,7 +126,7 @@ impl Landscape {
                 if Self::is_lowest(&cell, &neighbours)
                     && Self::is_about_to_be_wet(&cell, &neighbours)
                 {
-                    next_cell.water_level += 1;
+                    next_cell.water_level += [1, 2, 3].choose(&mut rng).unwrap();
                     next_cell.has_water_flowing = false;
                 }
                 next[idx] = next_cell;
