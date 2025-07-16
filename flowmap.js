@@ -53,6 +53,7 @@ const pause = () => {
 const step = (landscape) => {
   if (isPaused()) {
     landscape.tick();
+    debugger;
     landscape.draw(ctx);
     animationId = null;
   }
@@ -66,40 +67,43 @@ const restart = async (landscape) => {
 };
 
 const setupLocalCanvas = (landscape) => {
-  landscape_canvas.height = (CELL_SIZE + 1) * landscape.height() + 1;
-  landscape_canvas.width = (CELL_SIZE + 1) * landscape.width() + 1;
+  landscape_canvas.height = landscape.pixel_height() + 1;
+  landscape_canvas.width = landscape.pixel_width() + 1;
+  console.log(landscape.pixel_height());
+  console.log(landscape.pixel_width());
   return landscape_canvas.getContext("2d");
 };
 
-async function run() {
-  let landscape = await loadDem(PeakDEM);
+// async function run() {
+let landscape = await loadDem(PeakDEM);
 
-  const renderLoop = () => {
-    landscape.tick();
-    landscape.draw(ctx);
-    animationId = requestAnimationFrame(renderLoop);
-  };
+const ctx = setupLocalCanvas(landscape);
 
-
-  playPauseButton.addEventListener("click", () => {
-    if (isPaused()) {
-      play();
-    } else {
-      pause();
-    }
-  });
-
-  stepButton.addEventListener("click", () => {
-    step(landscape);
-  });
-
-  restartButton.addEventListener("click", () => {
-    restart(landscape);
-  });
-
-  let ctx = setupLocalCanvas(landscape);
-  setWater(landscape);
+const renderLoop = () => {
+  landscape.tick();
   landscape.draw(ctx);
-  pause();
-}
-run();
+  animationId = requestAnimationFrame(renderLoop);
+};
+
+playPauseButton.addEventListener("click", () => {
+  if (isPaused()) {
+    play();
+  } else {
+    pause();
+  }
+});
+
+stepButton.addEventListener("click", () => {
+  step(landscape);
+});
+
+restartButton.addEventListener("click", () => {
+  restart(landscape);
+});
+
+setWater(landscape);
+landscape.draw(ctx);
+pause();
+step();
+// }
+// run();

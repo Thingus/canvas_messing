@@ -17,12 +17,20 @@ module.exports = {
       },
     ],
   },
+  devtool: "inline-source-map",
   plugins: [
-    new HtmlWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      title: "Wasm Landscape",
+      filename: "index.html",
+      template: "./flowmap.html",
+    }),
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, "."),
     }),
   ],
+  devServer: {
+    static: "./dist",
+  },
   mode: "development",
   experiments: {
     asyncWebAssembly: true,

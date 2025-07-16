@@ -289,6 +289,14 @@ impl LandscapeCanvas {
         return canvas;
     }
 
+    pub fn pixel_height(&self) -> u32 {
+        return self.height * self.cell_size;
+    }
+
+    pub fn pixel_width(&self) -> u32 {
+        return self.width * self.cell_size;
+    }
+
     pub fn tick(&mut self) {
         self.landscape.tick();
     }
@@ -305,13 +313,13 @@ impl LandscapeCanvas {
     pub fn draw(&self, context: &CanvasRenderingContext2d) {
         for x in 0..self.landscape.width {
             for y in 0..self.landscape.height {
-                let idx = self.landscape.get_index(x, y);
+                let idx = self.landscape.get_index(y, x);
                 let cell = self.landscape.cells[idx];
                 let color = LandscapeCanvas::pick_cell_color(cell);
                 context.set_fill_style_str(&color);
                 context.fill_rect(
-                    (self.width * self.cell_size) as f64,
-                    (self.height * self.cell_size) as f64,
+                    (x * self.cell_size) as f64,
+                    (y * self.cell_size) as f64,
                     self.cell_size as f64,
                     self.cell_size as f64,
                 );
