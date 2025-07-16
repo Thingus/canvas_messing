@@ -126,7 +126,7 @@ impl Landscape {
                 if Self::is_lowest(&cell, &neighbours)
                     && Self::is_about_to_be_wet(&cell, &neighbours)
                 {
-                    next_cell.water_level += [1, 2, 3].choose(&mut rng).unwrap();
+                    next_cell.water_level += [0, 1, 1].choose(&mut rng).unwrap();
                     next_cell.has_water_flowing = false;
                 }
                 next[idx] = next_cell;
