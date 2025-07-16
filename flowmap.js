@@ -72,12 +72,6 @@ const setupLocalCanvas = (landscape) => {
 };
 
 async function run() {
-
-  const landscape_canvas = document.getElementById("landscape-canvas");
-  const playPauseButton = document.getElementById("play-pause");
-  const stepButton = document.getElementById("step");
-  const restartButton = document.getElementById("restart");
-  
   let landscape = await loadDem(PeakDEM);
 
   const renderLoop = () => {
