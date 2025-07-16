@@ -2,7 +2,7 @@ import { LandscapeCanvas as LandscapeArtist } from "./pkg";
 import PeakDEM from "./output_hh.tif";
 import { fromUrl } from "geotiff";
 
-const CELL_SIZE = 10;
+const CELL_SIZE = 2;
 let animationId = null;
 
 const landscape_canvas = document.getElementById("landscape-canvas");
@@ -14,8 +14,8 @@ const loadDem = async (dem_path) => {
   const image = await fromUrl(dem_path);
   const left = 50;
   const top = 10;
-  const right = 150;
-  const bottom = 60;
+  const right = 250;
+  const bottom = 140;
   const height = bottom - top;
   const width = right - left;
   const data = await image.readRasters({ window: [left, top, right, bottom] });
@@ -29,81 +29,88 @@ const binDem = (dem_data) => {
   return new Uint8Array(dem_round.map((a) => a - min));
 };
 
-const setWater = (landscape) => {
-  //landscape.make_stream(30, 67);
-  landscape.make_stream(39, 45);
-};
+function run(landscape) {
+  const setWater = (landscape) => {
+    //landscape.make_stream(30, 67);
+    landscape.make_stream(39, 45);
+  };
 
-// At this point, I realise why MVC is a good idea
-const play = () => {
-  playPauseButton.textContent = "⏸";
-  renderLoop();
-};
+  // At this point, I realise why MVC is a good idea
+  const play = () => {
+    playPauseButton.textContent = "⏸";
+    renderLoop();
+  };
 
-const isPaused = () => {
-  return animationId === null;
-};
+  const isPaused = () => {
+    return animationId === null;
+  };
 
-const pause = () => {
-  playPauseButton.textContent = "▶";
-  cancelAnimationFrame(animationId);
-  animationId = null;
-};
+  const pause = () => {
+    playPauseButton.textContent = "▶";
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  };
 
-const step = (landscape) => {
-  if (isPaused()) {
-    landscape.tick();
-    debugger;
+  const step = (landscape) => {
+    if (isPaused()) {
+      landscape.tick();
+      debugger;
+      landscape.draw(ctx);
+      animationId = null;
+    }
+  };
+
+  const restart = (landscape) => {
+    landscape.reset();
+    pause();
     landscape.draw(ctx);
     animationId = null;
-  }
-};
+  };
 
-const restart = async (landscape) => {
-  landscape.reset();
+  const setupLocalCanvas = (landscape) => {
+    landscape_canvas.height = landscape.pixel_height();
+    landscape_canvas.width = landscape.pixel_width();
+    console.log(landscape.pixel_height());
+    console.log(landscape.pixel_width());
+    return landscape_canvas.getContext("2d");
+  };
+
+  const ctx = setupLocalCanvas(landscape);
+
+  const renderLoop = () => {
+    landscape.tick();
+    landscape.draw(ctx);
+    animationId = requestAnimationFrame(renderLoop);
+  };
+
+  playPauseButton.addEventListener("click", () => {
+    if (isPaused()) {
+      play();
+    } else {
+      pause();
+    }
+  });
+
+  stepButton.addEventListener("click", () => {
+    step(landscape);
+  });
+
+  restartButton.addEventListener("click", () => {
+    restart(landscape);
+  });
+
+  setWater(landscape);
+  landscape.draw(ctx);
   pause();
-  landscape.draw(ctx);
-  animationId = null;
-};
+  play();
+}
 
-const setupLocalCanvas = (landscape) => {
-  landscape_canvas.height = landscape.pixel_height() + 1;
-  landscape_canvas.width = landscape.pixel_width() + 1;
-  console.log(landscape.pixel_height());
-  console.log(landscape.pixel_width());
-  return landscape_canvas.getContext("2d");
-};
+async function runrun() {
+  let landscape = await loadDem(PeakDEM);
+  run(landscape);
+}
+runrun();
 
-// async function run() {
-let landscape = await loadDem(PeakDEM);
-
-const ctx = setupLocalCanvas(landscape);
-
-const renderLoop = () => {
-  landscape.tick();
-  landscape.draw(ctx);
-  animationId = requestAnimationFrame(renderLoop);
-};
-
-playPauseButton.addEventListener("click", () => {
-  if (isPaused()) {
-    play();
-  } else {
-    pause();
-  }
-});
-
-stepButton.addEventListener("click", () => {
-  step(landscape);
-});
-
-restartButton.addEventListener("click", () => {
-  restart(landscape);
-});
-
-setWater(landscape);
-landscape.draw(ctx);
-pause();
-step();
-// }
-// run();
+// NOTE: canvas{
+//   filter: blur(10px) sepia(80%)
+//   }

@@ -124,7 +124,6 @@ impl Landscape {
                 if Self::is_lowest(&cell, &neighbours)
                     && Self::is_about_to_be_wet(&cell, &neighbours)
                 {
-                    log!("Increasing water level at {row} {column}");
                     next_cell.water_level += 1;
                     next_cell.has_water_flowing = false;
                 }
