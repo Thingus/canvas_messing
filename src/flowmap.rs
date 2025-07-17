@@ -245,7 +245,7 @@ impl Landscape {
 }
 
 #[wasm_bindgen]
-pub struct LandscapeCanvas {
+pub struct LandscapeArtist {
     landscape: Landscape,
     width: u32,
     height: u32,
@@ -253,14 +253,14 @@ pub struct LandscapeCanvas {
 }
 
 #[wasm_bindgen]
-impl LandscapeCanvas {
+impl LandscapeArtist {
     #[wasm_bindgen(constructor)]
     pub fn run(
         canvas_width_cells: u32,
         canvas_height_cells: u32,
         cell_size_pixels: u32,
         dem: Vec<Level>,
-    ) -> LandscapeCanvas {
+    ) -> LandscapeArtist {
         set_panic_hook();
 
         let dem_len = dem.len();
@@ -281,7 +281,7 @@ impl LandscapeCanvas {
         let landscape = Landscape::new_from_dem(dem, canvas_height_cells, canvas_width_cells);
 
         log!("Creating canvas handler");
-        let canvas = LandscapeCanvas {
+        let canvas = LandscapeArtist {
             landscape: landscape,
             width: canvas_width_cells,
             height: canvas_height_cells,
@@ -316,7 +316,7 @@ impl LandscapeCanvas {
             for y in 0..self.landscape.height {
                 let idx = self.landscape.get_index(y, x);
                 let cell = self.landscape.cells[idx];
-                let color = LandscapeCanvas::pick_cell_color(cell);
+                let color = LandscapeArtist::pick_cell_color(&cell);
                 context.set_fill_style_str(&color);
                 context.fill_rect(
                     (x * self.cell_size) as f64,
@@ -328,7 +328,7 @@ impl LandscapeCanvas {
         }
     }
 
-    fn pick_cell_color(cell: LandCell) -> String {
+    fn pick_cell_color(cell: &LandCell) -> String {
         // This could be done with a match, once I understand matches.
         if cell.is_wet() {
             let mut blue_shade = 230 - cell.water_level;
