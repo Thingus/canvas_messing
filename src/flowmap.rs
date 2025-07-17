@@ -64,10 +64,12 @@ impl fmt::Display for LandCell {
     }
 }
 
-pub struct Landscape {
+struct Landscape {
     width: u32,
     height: u32,
     cells: Vec<LandCell>,
+    total_water: usize,
+    total_flowing: usize,
 }
 
 impl Landscape {
@@ -134,8 +136,13 @@ impl Landscape {
         }
 
         self.cells = next;
-        let water_cells = self.cells.iter().filter(|c| c.water_level > 0).count();
-        log!("{water_cells} cells now wet");
+        self.total_water = self.cells.iter().filter(|c| c.water_level > 0).count();
+        self.total_flowing = self.cells.iter().filter(|c| c.has_water_flowing).count();
+        log!(
+            "{} cells now wet, {} cells now flowing",
+            self.total_water,
+            self.total_flowing
+        );
     }
 
     pub fn reset(&mut self) {
@@ -184,6 +191,8 @@ impl Landscape {
             height: height as u32,
             width: width as u32,
             cells,
+            total_water: 0,
+            total_flowing: 0,
         }
     }
 
@@ -215,6 +224,8 @@ impl Landscape {
             height,
             width,
             cells,
+            total_water: 0,
+            total_flowing: 0,
         }
     }
 
@@ -310,7 +321,13 @@ impl LandscapeArtist {
     pub fn make_stream(&mut self, row: u32, column: u32) {
         self.landscape.make_stream(row, column);
     }
+    pub fn get_total_water(&self) -> usize {
+        return self.landscape.total_water;
+    }
 
+    pub fn get_total_flowing(&self) -> usize {
+        return self.landscape.total_flowing;
+    }
     pub fn draw(&self, context: &CanvasRenderingContext2d) {
         for x in 0..self.landscape.width {
             for y in 0..self.landscape.height {

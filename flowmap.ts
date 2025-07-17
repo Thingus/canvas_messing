@@ -32,6 +32,7 @@ export default async function init_landscape(landscape_canvas: HTMLCanvasElement
 
   let landscape = await loadDem(PeakDEM, cell_size, width, height);
   let animationId: number | null = null
+  var total_water: number
 
   const setWater = () => {
     //landscape.make_stream(30, 67);
@@ -76,6 +77,16 @@ export default async function init_landscape(landscape_canvas: HTMLCanvasElement
   const renderLoop = () => {
     landscape.tick();
     landscape.draw(ctx);
+    let new_total_water = landscape.get_total_water()
+    // There's alway one spring-the highest spring may never get covered
+    if (landscape.get_total_flowing() === 1
+      && new_total_water === total_water
+    ) {
+      console.log("Flowmap is static, stopping.")
+      pause();
+      return
+    }
+    total_water = new_total_water
     animationId = requestAnimationFrame(renderLoop);
   };
 
@@ -87,9 +98,10 @@ export default async function init_landscape(landscape_canvas: HTMLCanvasElement
 }
 
 async function runrun() {
-  let play, pause, step, restart, isPaused;
-  [play, pause, step, restart, isPaused] =
-    await init_landscape(landscape_canvas!, 10, 200, 100);
+  let play, pause, step, restart, isPaused, getState;
+  [play, pause, step, restart, isPaused, getState] =
+    // await init_landscape(landscape_canvas!, 10, 200, 100);
+    await init_landscape(landscape_canvas!, 20, 100, 500);
 
   playPauseButton.addEventListener("click", () => {
     if (isPaused()) {
