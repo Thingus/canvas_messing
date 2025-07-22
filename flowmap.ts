@@ -5,12 +5,21 @@ import { fromUrl } from "geotiff";
 const CELL_SIZE = 2;
 let animationId = null;
 
-const landscape_canvas = document.getElementById("landscape-canvas") as HTMLCanvasElement;
-const playPauseButton = document.getElementById("play-pause") as HTMLButtonElement;
+const landscape_canvas = document.getElementById(
+  "landscape-canvas",
+) as HTMLCanvasElement;
+const playPauseButton = document.getElementById(
+  "play-pause",
+) as HTMLButtonElement;
 const stepButton = document.getElementById("step") as HTMLButtonElement;
 const restartButton = document.getElementById("restart") as HTMLButtonElement;
 
-const loadDem = async (dem_path: string, cell_size: number, width: number, height: number) => {
+const loadDem = async (
+  dem_path: string,
+  cell_size: number,
+  width: number,
+  height: number,
+) => {
   const image = await fromUrl(dem_path);
   const left = 50;
   const top = 10;
@@ -28,11 +37,15 @@ const binDem = (dem_data: number[]) => {
   return new Uint8Array(dem_round.map((a) => a - min));
 };
 
-export default async function init_landscape(landscape_canvas: HTMLCanvasElement, cell_size: number, width: number, height: number): Promise<Array<Function>> {
-
+export default async function init_landscape(
+  landscape_canvas: HTMLCanvasElement,
+  cell_size: number,
+  width: number,
+  height: number,
+): Promise<Array<Function>> {
   let landscape = await loadDem(PeakDEM, cell_size, width, height);
-  let animationId: number | null = null
-  var total_water: number
+  let animationId: number | null = null;
+  var total_water: number;
 
   const setWater = () => {
     //landscape.make_stream(30, 67);
@@ -73,20 +86,20 @@ export default async function init_landscape(landscape_canvas: HTMLCanvasElement
     animationId = null;
   };
 
-
   const renderLoop = () => {
     landscape.tick();
     landscape.draw(ctx);
-    let new_total_water = landscape.get_total_water()
+    let new_total_water = landscape.get_total_water();
     // There's alway one spring-the highest spring may never get covered
-    if (landscape.get_total_flowing() === 1
-      && new_total_water === total_water
+    if (
+      landscape.get_total_flowing() === 1 &&
+      new_total_water === total_water
     ) {
-      console.log("Flowmap is static, stopping.")
+      console.log("Flowmap is static, stopping.");
       pause();
-      return
+      return;
     }
-    total_water = new_total_water
+    total_water = new_total_water;
     animationId = requestAnimationFrame(renderLoop);
   };
 
@@ -101,7 +114,7 @@ async function runrun() {
   let play, pause, step, restart, isPaused, getState;
   [play, pause, step, restart, isPaused, getState] =
     // await init_landscape(landscape_canvas!, 10, 200, 100);
-    await init_landscape(landscape_canvas!, 20, 100, 500);
+    await init_landscape(landscape_canvas!, 10, 200, 150);
 
   playPauseButton.addEventListener("click", () => {
     if (isPaused()) {
