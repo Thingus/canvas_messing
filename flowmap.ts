@@ -37,7 +37,7 @@ const binDem = (dem_data: number[]) => {
   return new Uint8Array(dem_round.map((a) => a - min));
 };
 
-export default async function init_landscape(
+export default async function initLandscape(
   landscape_canvas: HTMLCanvasElement,
   cell_size: number,
   width: number,
@@ -114,7 +114,7 @@ async function runrun() {
   let play, pause, step, restart, isPaused, getState;
   [play, pause, step, restart, isPaused, getState] =
     // await init_landscape(landscape_canvas!, 10, 200, 100);
-    await init_landscape(landscape_canvas!, 10, 200, 150);
+    await initLandscape(landscape_canvas!, 10, 200, 150);
 
   playPauseButton.addEventListener("click", () => {
     if (isPaused()) {

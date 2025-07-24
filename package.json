@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "scripts": {
     "build": "webpack",
-    "serve": "webpack serve"
+    "serve": "webpack serve",
+    "build_web": "wasm-pack build --target web"
   },
   "exports":{
     "./package.json":"./package.json",

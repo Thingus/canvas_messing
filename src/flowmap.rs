@@ -282,11 +282,11 @@ impl LandscapeArtist {
         log!("Cell size: {cell_size_pixels} pixels");
         log!("Dem: {dem_len} cells");
 
-        if (canvas_width_cells % cell_size_pixels != 0)
-            || (canvas_height_cells % cell_size_pixels != 0)
-        {
-            panic!("Cells must divide cleanly into canvas size");
-        }
+        // if (canvas_width_cells % cell_size_pixels != 0)
+        //     || (canvas_height_cells % cell_size_pixels != 0)
+        // {
+        //     panic!("Cells must divide cleanly into canvas size");
+        // }
 
         log!("Creating landscape from dem");
         let landscape = Landscape::new_from_dem(dem, canvas_height_cells, canvas_width_cells);
