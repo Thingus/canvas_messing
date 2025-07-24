@@ -155,6 +155,7 @@ impl Landscape {
                 let cell = self.cells[idx];
                 let mut next_cell = next[idx];
                 next_cell.water_level = 0;
+                next_cell.has_water_flowing = false;
                 next[idx] = next_cell;
             }
         }
