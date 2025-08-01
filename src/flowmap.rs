@@ -21,7 +21,7 @@
 
 use rand::{prelude::*, rng};
 use std::fmt;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, Clamped};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
 pub fn set_panic_hook() {
@@ -45,6 +45,18 @@ pub struct LandCell {
     pub land_level: Level,
     pub water_level: Level,
     has_water_flowing: bool,
+}
+
+struct RGBAColor {
+    red: u8,
+    green: u8,
+    blue: u8,
+    alpha: u8,
+}
+impl RGBAColor {
+    fn as_vec(&self) -> Vec<u8> {
+        return vec![self.red, self.green, self.blue, self.alpha];
+    }
 }
 
 impl LandCell {
@@ -329,35 +341,126 @@ impl LandscapeArtist {
     pub fn get_total_flowing(&self) -> usize {
         return self.landscape.total_flowing;
     }
+
     pub fn draw(&self, context: &CanvasRenderingContext2d) {
-        for x in 0..self.landscape.width {
-            for y in 0..self.landscape.height {
-                let idx = self.landscape.get_index(y, x);
-                let cell = self.landscape.cells[idx];
-                let color = LandscapeArtist::pick_cell_color(&cell);
-                context.set_fill_style_str(&color);
-                context.fill_rect(
-                    (x * self.cell_size) as f64,
-                    (y * self.cell_size) as f64,
-                    self.cell_size as f64,
-                    self.cell_size as f64,
-                );
-            }
-        }
+        // Instead of calling set_fill_style ... fill_rect w*l times per update
+        // and needing to make too damn many round trips back to Javascript,
+        // we build a bitmap of our own and blit that all at once.
+
+        let map = self.draw_map();
+        log!(
+            "Image should be {:?}",
+            self.landscape.width * self.landscape.height * self.cell_size * 4
+        );
+        log!("Image is: {:?}", map.len());
+        log!("{:?}", &map[0..40]);
+
+        let img_data =
+            ImageData::new_with_u8_clamped_array(Clamped(&map), self.width * self.cell_size * 4)
+                .unwrap();
+        context.put_image_data(&img_data, 0.0, 0.0);
     }
 
-    fn pick_cell_color(cell: &LandCell) -> String {
+    fn pick_cell_color(cell: &LandCell) -> RGBAColor {
         // This could be done with a match, once I understand matches.
         if cell.is_wet() {
             let mut blue_shade = 230 - cell.water_level;
             if cell.has_water_flowing {
                 blue_shade += 20;
             }
-            return format!("rgb(00 00 {blue_shade})");
+            return RGBAColor {
+                red: 0,
+                green: 0,
+                blue: blue_shade,
+                alpha: 0,
+            };
         } else if cell.has_water_flowing {
-            return format!("rgb(00 00 240)");
+            return RGBAColor {
+                red: 0,
+                green: 0,
+                blue: 240,
+                alpha: 0,
+            };
         } else {
-            return format!("rgb(00 {0} 00)", cell.land_level);
+            return RGBAColor {
+                red: 0,
+                green: cell.land_level,
+                blue: 0,
+                alpha: 0,
+            };
         }
+    }
+}
+
+// Public but not wasm-bindgen, for testing
+impl LandscapeArtist {
+    fn color_cell(&self, bitmap: &mut Vec<u8>, row: usize, column: usize, color: RGBAColor) {
+        let cell_size: usize = self.cell_size as usize;
+        let row_stride: usize = (self.pixel_width() * 4) as usize;
+        let cell_left: usize = (row * cell_size * 4);
+        let cell_top: usize = (column * cell_size * 4);
+        let cell_right: usize = cell_left + cell_size * 4;
+        let cell_bottom: usize = cell_top + cell_size * 4;
+
+        log!("tl: {:?}, {:?}", cell_left, cell_top);
+        log!("br: {:?}, {:?}", cell_right, cell_bottom);
+
+        for cell_y in 0..cell_size {
+            let scanline_start = cell_left + (row_stride * cell_top) + (row_stride * cell_y);
+            let scanline_end = scanline_start + (cell_size * 4);
+            log!(
+                "scanline start: {:?}, scanline_end: {:?}",
+                scanline_start,
+                scanline_end
+            );
+            let row = color.as_vec().repeat(cell_size);
+            bitmap[scanline_start..scanline_end].clone_from_slice(row.as_slice());
+        }
+    }
+
+    pub fn draw_map(&self) -> Vec<u8> {
+        let bitmap_size: usize =
+            (self.landscape.width * self.landscape.height * self.cell_size * 4) as usize;
+        let mut out_bitmap: Vec<u8> = Vec::with_capacity(bitmap_size);
+        for _ in 0..bitmap_size {
+            out_bitmap.push(0);
+        }
+
+        // for x in 0..self.landscape.width {
+        //     for y in 0..self.landscape.height {
+        for x in 0..2 {
+            for y in 0..2 {
+                let idx = self.landscape.get_index(y, x);
+                let cell = self.landscape.cells[idx];
+                let color = LandscapeArtist::pick_cell_color(&cell);
+                self.color_cell(&mut out_bitmap, y as usize, x as usize, color);
+            }
+        }
+        return out_bitmap;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_artist() -> LandscapeArtist {
+        return LandscapeArtist {
+            landscape: Landscape::new_bowl(),
+            width: 64,
+            height: 64,
+            cell_size: 10,
+        };
+    }
+
+    #[test]
+    fn test_tester() {
+        assert_eq!(1 + 1, 2);
+    }
+
+    #[test]
+    fn test_bitmap_blit() {
+        let foo = test_artist();
+        foo.draw_map();
     }
 }

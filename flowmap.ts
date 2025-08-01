@@ -114,7 +114,7 @@ async function runrun() {
   let play, pause, step, restart, isPaused, getState;
   [play, pause, step, restart, isPaused, getState] =
     // await init_landscape(landscape_canvas!, 10, 200, 100);
-    await initLandscape(landscape_canvas!, 10, 200, 150);
+    await initLandscape(landscape_canvas!, 10, 20, 15);
 
   playPauseButton.addEventListener("click", () => {
     if (isPaused()) {

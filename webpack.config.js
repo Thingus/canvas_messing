@@ -38,7 +38,7 @@ module.exports = {
   devServer: {
     static: "./dist",
   },
-  mode: "production",
+  mode: "development",
   experiments: {
     asyncWebAssembly: true,
   },
