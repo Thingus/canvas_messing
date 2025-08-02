@@ -2,7 +2,7 @@ cargo-features = ["profile-rustflags"]
 
 [package]
 name = "canvas_exploration"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Thingus <john@johnrprogramming.com>"]
 edition = "2018"
 

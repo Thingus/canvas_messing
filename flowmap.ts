@@ -48,8 +48,8 @@ export default async function initLandscape(
   var total_water: number;
 
   const setWater = () => {
-    //landscape.make_stream(30, 67);
-    landscape.make_stream(39, 45);
+    landscape.make_stream(30, 67);
+    // landscape.make_stream(1, 1);
   };
 
   landscape_canvas.height = landscape.pixel_height();
@@ -113,8 +113,9 @@ export default async function initLandscape(
 async function runrun() {
   let play, pause, step, restart, isPaused, getState;
   [play, pause, step, restart, isPaused, getState] =
-    // await init_landscape(landscape_canvas!, 10, 200, 100);
-    await initLandscape(landscape_canvas!, 10, 20, 15);
+    await initLandscape(landscape_canvas!, 10, 200, 100);
+  // await initLandscape(landscape_canvas!, 10, 2, 3);
+  // await initLandscape(landscape_canvas!, 10, 20, 30);
 
   playPauseButton.addEventListener("click", () => {
     if (isPaused()) {

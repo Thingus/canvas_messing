@@ -348,16 +348,13 @@ impl LandscapeArtist {
         // we build a bitmap of our own and blit that all at once.
 
         let map = self.draw_map();
-        log!(
-            "Image should be {:?}",
-            self.landscape.width * self.landscape.height * self.cell_size * 4
-        );
-        log!("Image is: {:?}", map.len());
-        log!("{:?}", &map[0..40]);
 
-        let img_data =
-            ImageData::new_with_u8_clamped_array(Clamped(&map), self.width * self.cell_size * 4)
-                .unwrap();
+        let img_data = ImageData::new_with_u8_clamped_array_and_sh(
+            Clamped(&map),
+            self.width * self.cell_size,
+            self.height * self.cell_size,
+        )
+        .unwrap();
         context.put_image_data(&img_data, 0.0, 0.0);
     }
 
@@ -372,21 +369,21 @@ impl LandscapeArtist {
                 red: 0,
                 green: 0,
                 blue: blue_shade,
-                alpha: 0,
+                alpha: 255,
             };
         } else if cell.has_water_flowing {
             return RGBAColor {
                 red: 0,
                 green: 0,
                 blue: 240,
-                alpha: 0,
+                alpha: 255,
             };
         } else {
             return RGBAColor {
                 red: 0,
                 green: cell.land_level,
                 blue: 0,
-                alpha: 0,
+                alpha: 255,
             };
         }
     }
@@ -396,23 +393,15 @@ impl LandscapeArtist {
 impl LandscapeArtist {
     fn color_cell(&self, bitmap: &mut Vec<u8>, row: usize, column: usize, color: RGBAColor) {
         let cell_size: usize = self.cell_size as usize;
-        let row_stride: usize = (self.pixel_width() * 4) as usize;
+        let row_stride: usize = (self.width * self.cell_size * 4) as usize;
         let cell_left: usize = (row * cell_size * 4);
-        let cell_top: usize = (column * cell_size * 4);
-        let cell_right: usize = cell_left + cell_size * 4;
-        let cell_bottom: usize = cell_top + cell_size * 4;
-
-        log!("tl: {:?}, {:?}", cell_left, cell_top);
-        log!("br: {:?}, {:?}", cell_right, cell_bottom);
+        let cell_top: usize = (column * cell_size);
+        let cell_right: usize = cell_left + cell_size;
+        let cell_bottom: usize = cell_top + cell_size;
 
         for cell_y in 0..cell_size {
-            let scanline_start = cell_left + (row_stride * cell_top) + (row_stride * cell_y);
+            let scanline_start = cell_left + (row_stride * (cell_top + cell_y));
             let scanline_end = scanline_start + (cell_size * 4);
-            log!(
-                "scanline start: {:?}, scanline_end: {:?}",
-                scanline_start,
-                scanline_end
-            );
             let row = color.as_vec().repeat(cell_size);
             bitmap[scanline_start..scanline_end].clone_from_slice(row.as_slice());
         }
@@ -420,20 +409,21 @@ impl LandscapeArtist {
 
     pub fn draw_map(&self) -> Vec<u8> {
         let bitmap_size: usize =
-            (self.landscape.width * self.landscape.height * self.cell_size * 4) as usize;
+            (self.landscape.width * self.landscape.height * self.cell_size * self.cell_size * 4)
+                as usize;
         let mut out_bitmap: Vec<u8> = Vec::with_capacity(bitmap_size);
         for _ in 0..bitmap_size {
             out_bitmap.push(0);
         }
 
-        // for x in 0..self.landscape.width {
-        //     for y in 0..self.landscape.height {
-        for x in 0..2 {
-            for y in 0..2 {
+        // for x in 0..50 {
+        //     for y in 0..30 {
+        for x in 0..self.landscape.width {
+            for y in 0..self.landscape.height {
                 let idx = self.landscape.get_index(y, x);
                 let cell = self.landscape.cells[idx];
                 let color = LandscapeArtist::pick_cell_color(&cell);
-                self.color_cell(&mut out_bitmap, y as usize, x as usize, color);
+                self.color_cell(&mut out_bitmap, x as usize, y as usize, color);
             }
         }
         return out_bitmap;
